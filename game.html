@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-POP 데몬 헌터스 적성검사</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #050510;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Cyberpunk / Neon Styles */
+        .neon-text-pink {
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+            color: #fff;
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff;
+            color: #fff;
+        }
+        
+        .neon-box {
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2), inset 0 0 10px rgba(0, 255, 255, 0.1);
+            background: rgba(10, 10, 30, 0.8);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .neon-box:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5), inset 0 0 15px rgba(255, 0, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Glitch Animation */
+        .glitch-wrapper {
+            position: relative;
+        }
+        .glitch {
+            position: relative;
+            font-weight: 900;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050510;
+        }
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff00ff;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #00ffff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(13px, 9999px, 85px, 0); }
+            20% { clip: rect(98px, 9999px, 18px, 0); }
+            40% { clip: rect(44px, 9999px, 32px, 0); }
+            60% { clip: rect(75px, 9999px, 90px, 0); }
+            80% { clip: rect(20px, 9999px, 50px, 0); }
+            100% { clip: rect(65px, 9999px, 12px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(82px, 9999px, 15px, 0); }
+            20% { clip: rect(15px, 9999px, 85px, 0); }
+            40% { clip: rect(60px, 9999px, 30px, 0); }
+            60% { clip: rect(25px, 9999px, 70px, 0); }
+            80% { clip: rect(90px, 9999px, 40px, 0); }
+            100% { clip: rect(10px, 9999px, 95px, 0); }
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Progress Bar */
+        .progress-bar-fill {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Screen Transitions */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Loader */
+        .loader {
+            border: 4px solid rgba(0, 255, 255, 0.1);
+            border-top: 4px solid #ff00ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+    <div class="scanlines"></div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen active flex-col items-center justify-center w-full max-w-md text-center z-10">
+        <div class="mb-4 text-cyan-400 text-sm tracking-widest">[ SYSTEM_READY ]</div>
+        <h1 class="text-5xl md:text-6xl font-black mb-2 glitch neon-text-pink uppercase" data-text="K-POP">K-POP</h1>
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 neon-text-cyan tracking-wider">DEMON HUNTERS</h2>
+        
+        <div class="neon-box p-6 rounded-xl mb-8 w-full text-left">
+            <p class="text-gray-300 text-sm leading-relaxed mb-4">
+                "무대 위에선 화려한 아이돌, 무대 아래선 악령을 베는 헌터."<br><br>
+                당신의 영혼 파장을 분석하여, K-POP 데몬 헌터스 크루 내에서 당신의 포지션과 전투 스타일을 매칭합니다.
+            </p>
+            <p class="text-xs text-pink-400 font-bold animate-pulse">※ 경고: 악령의 간섭으로 시스템이 불안정할 수 있습니다.</p>
+        </div>
+
+        <button onclick="startGame()" class="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all border border-pink-400 shadow-[0_0_15px_rgba(255,0,255,0.4)]">
+            영혼 동기화 시작 (START)
+        </button>
+    </div>
+
+    <!-- QUESTION SCREEN -->
+    <div id="question-screen" class="screen flex-col items-center w-full max-w-md z-10 w-full">
+        <!-- Progress -->
+        <div class="w-full mb-8">
+            <div class="flex justify-between text-xs font-bold text-cyan-400 mb-2">
+                <span id="q-num">Q. 1 / 12</span>
+                <span class="animate-pulse">ANALYZING...</span>
+            </div>
+            <div class="h-2 w-full bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                <div id="progress-bar" class="h-full bg-gradient-to-r from-cyan-400 to-pink-500 progress-bar-fill w-0"></div>
+            </div>
+        </div>
+
+        <!-- Question -->
+        <div class="w-full min-h-[120px] flex items-center justify-center mb-8">
+            <h2 id="question-text" class="text-xl md:text-2xl font-bold text-center leading-snug break-keep">
+                질문이 여기에 표시됩니다.
+            </h2>
+        </div>
+
+        <!-- Answers -->
+        <div class="w-full flex flex-col gap-4">
+            <button onclick="selectAnswer('A')" id="ans-a" class="neon-box p-5 rounded-xl text-left font-medium text-sm md:text-base hover:text-pink-300 transition-colors">
+                답변 A
+            </button>
+            <button onclick="selectAnswer('B')" id="ans-b" class="neon-box p-5 rounded-xl text-left font-medium text-sm md:text-base hover:text-cyan-300 transition-colors">
+                답변 B
+            </button>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen" class="screen flex-col items-center justify-center w-full max-w-md z-10 text-center">
+        <div class="loader mb-6"></div>
+        <h2 class="text-2xl font-bold glitch text-white mb-2" data-text="DATA EXTRACTING...">DATA EXTRACTING...</h2>
+        <p class="text-cyan-400 text-sm">MBTI 유전자 및 마나 파장 분석 중...</p>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen flex-col items-center w-full max-w-md z-10 pb-10">
+        <div class="text-center w-full mb-6">
+            <p class="text-cyan-400 text-sm font-bold tracking-widest mb-1">ANALYSIS COMPLETE</p>
+            <h2 id="result-mbti" class="text-5xl font-black neon-text-pink mb-2">MBTI</h2>
+            <h3 id="result-title" class="text-xl font-bold text-white bg-gray-800 inline-block px-4 py-1 rounded-full border border-gray-600">포지션 타이틀</h3>
+        </div>
+
+        <div class="neon-box w-full p-6 rounded-xl mb-6 flex flex-col items-center relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute -right-10 -top-10 text-8xl opacity-5 font-black">X</div>
+            
+            <img id="result-img" src="" alt="캐릭터 일러스트" class="w-32 h-32 object-cover rounded-full border-4 border-pink-500 shadow-[0_0_20px_rgba(255,0,255,0.4)] mb-4" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect fill=\'%23111\' width=\'100\' height=\'100\'/%3E%3Ctext fill=\'%23ff00ff\' x=\'50\' y=\'50\' font-family=\'sans-serif\' font-size=\'40\' font-weight=\'bold\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3E?%3C/text%3E%3C/svg%3E'">
+            
+            <div id="result-desc" class="text-sm text-gray-200 leading-relaxed text-center break-keep">
+                캐릭터 설명이 여기에 들어갑니다.
+            </div>
+
+            <!-- Stats -->
+            <div class="w-full mt-6 grid grid-cols-3 gap-2 text-center text-xs font-bold">
+                <div class="bg-gray-800 p-2 rounded border border-gray-700">
+                    <span class="block text-red-400 mb-1">ATK</span>
+                    <span id="stat-atk">00</span>
+                </div>
+                <div class="bg-gray-800 p-2 rounded border border-gray-700">
+                    <span class="block text-blue-400 mb-1">DEF</span>
+                    <span id="stat-def">00</span>
+                </div>
+                <div class="bg-gray-800 p-2 rounded border border-gray-700">
+                    <span class="block text-purple-400 mb-1">MAG</span>
+                    <span id="stat-mag">00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 w-full mb-8">
+            <div class="neon-box p-4 rounded-xl text-center">
+                <p class="text-xs text-cyan-400 mb-1">환상의 듀오 💖</p>
+                <p id="match-good" class="font-bold text-sm">MBTI</p>
+            </div>
+            <div class="neon-box p-4 rounded-xl text-center border-red-900 shadow-[0_0_10px_rgba(255,0,0,0.1)] hover:border-red-500 hover:shadow-[0_0_15px_rgba(255,0,0,0.4)]">
+                <p class="text-xs text-red-400 mb-1">혐관 페어 ⚔️</p>
+                <p id="match-bad" class="font-bold text-sm">MBTI</p>
+            </div>
+        </div>
+
+        <div class="flex gap-3 w-full">
+            <button onclick="location.reload()" class="flex-1 py-3 rounded-lg font-bold text-sm bg-gray-800 hover:bg-gray-700 border border-gray-600 transition-colors">
+                다시 테스트하기
+            </button>
+            <button onclick="copyLink()" class="flex-1 py-3 rounded-lg font-bold text-sm bg-cyan-600 hover:bg-cyan-500 text-black border border-cyan-400 transition-colors shadow-[0_0_10px_rgba(0,255,255,0.3)]">
+                결과 공유하기 🔗
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-pink-600 text-white px-6 py-3 rounded-full font-bold shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        링크가 복사되었습니다!
+    </div>
+
+    <script>
+        // Questions Data (12 Questions: 3 for each dichotomy)
+        const questions = [
+            // E vs I
+            {
+                axis: 'EI',
+                q: "SS급 악령 보스 레이드 성공 후 주어진 꿀 같은 휴가! 나의 선택은?",
+                a: { text: "핫플 무조건 가야지! 헌터 크루들이랑 밤새 파티 폼 미쳤다 🪩", type: "E" },
+                b: { text: "아 기빨려... 침대에서 넷플릭스 보면서 영혼 마나 충전 🛌", type: "I" }
+            },
+            {
+                axis: 'EI',
+                q: "새로운 연습생(수습 헌터)이 크루에 합류했다! 나의 반응은?",
+                a: { text: "\"헐 안녕!! MBTI가 뭐야? 무기 뭐써?!\" 먼저 다가가서 폭풍 질문 🎤", type: "E" },
+                b: { text: "(속으로 '오 귀엽네...' 생각하며) 조용히 눈인사만 건넨다 👀", type: "I" }
+            },
+            {
+                axis: 'EI',
+                q: "성공적인 퇴마 후 열린 기자간담회. 마이크가 내게 넘어왔다!",
+                a: { text: "물 만난 고기처럼 화려한 입담으로 인터뷰를 하드캐리한다 ✌️", type: "E" },
+                b: { text: "최대한 짧고 임팩트 있게 대답하고 리더에게 마이크를 넘긴다 땀땀;; 💦", type: "I" }
+            },
+            // S vs N
+            {
+                axis: 'SN',
+                q: "길을 걷다 스산한 골목에서 발견한 검은 그림자! 이때 내 생각은?",
+                a: { text: "저거 그림자 길이가 이상한데? 주변 습도랑 온도 체크 ㄱㄱ 🧐", type: "S" },
+                b: { text: "헐 대박 이거 완전 뱀파이어 재질인데? 내 촉이 쎄하다고 말함 🔮", type: "N" }
+            },
+            {
+                axis: 'SN',
+                q: "R&D 팀과 새로운 무기 디자인 회의를 한다. 내가 요청하는 옵션은?",
+                a: { text: "일단 가벼워야 함. 그립감이랑 타격 딜레이 줄이는 쪽으로 가시죠 🛠️", type: "S" },
+                b: { text: "성능도 중요하지만 간지가 생명! 변신할 때 등에 홀로그램 날개 돋게 해주세요 ✨", type: "N" }
+            },
+            {
+                axis: 'SN',
+                q: "컴백 타이틀곡 가사를 직접 쓰게 되었다. 가사의 주요 내용은?",
+                a: { text: "우리가 겪었던 치열한 전투의 리얼한 과정과 팩트를 담은 가사 📝", type: "S" },
+                b: { text: "시공간을 초월해 우주를 유영하는 내 영혼과 숙명에 대한 은유적인 서사시 🌌", type: "N" }
+            },
+            // T vs F
+            {
+                axis: 'TF',
+                q: "전투 중 동료가 다가와 말했다. \"아 나 오늘 구르다가 레어 무기 깨졌어 ㅠㅠ\"",
+                a: { text: "헐 어쩌다? 수리비 얼마래? 예비 무기 인벤토리에 있어? 🗡️", type: "T" },
+                b: { text: "미친 ㅠㅠ 무기가 문제가 아니라 너 다친 데는 없어?! 짱아파보여 🥺", type: "F" }
+            },
+            {
+                axis: 'TF',
+                q: "퇴치 직전, 악령이 눈물을 흘리며 자신의 억울하고 슬픈 전생을 고백한다.",
+                a: { text: "(T_T 버튼 누름) 사연은 알겠는데... 그건 그거고 넌 죽어야지. 🔪", type: "T" },
+                b: { text: "헐... 솔직히 좀 불쌍하네 ㅠ (맘 아파하면서 일단 봉인함) 😢", type: "F" }
+            },
+            {
+                axis: 'TF',
+                q: "리더가 내 전투 폼에 대해 피드백을 줄 때, 내가 더 선호하는 방식은?",
+                a: { text: "\"타격 타이밍 0.5초 늦으니까 수정해.\" 객관적이고 정확한 분석 📊", type: "T" },
+                b: { text: "\"오늘 진짜 고생했어! 요 부분만 고치면 완벽할 듯!\" 따뜻한 격려와 쿠션어 💖", type: "F" }
+            },
+            // J vs P
+            {
+                axis: 'JP',
+                q: "다음 주 헬게이트 던전 원정 스케줄이 잡혔다!",
+                a: { text: "시간 단위로 동선 짜둠. 플랜 A, B, C 준비물까지 완벽 세팅 완료. 📋", type: "J" },
+                b: { text: "어차피 계획대로 안 됨. 전날 밤에 대충 짐 싸고 그날 컨디션에 맡김~ 🎒", type: "P" }
+            },
+            {
+                axis: 'JP',
+                q: "해외 투어(라 쓰고 원정 퇴마라 읽음) 짐을 챙길 때 내 모습은?",
+                a: { text: "체크리스트 앱 켜서 파우치별로 각 맞춰서 깔끔하게 테트리스 수납 🧳", type: "J" },
+                b: { text: "출발 3시간 전, 캐리어 열고 눈에 보이는 거 다 때려넣고 지퍼 위에서 뜀 🏃", type: "P" }
+            },
+            {
+                axis: 'JP',
+                q: "순찰 중 예상치 못한 기습 공격을 받았다! 내 머릿속은?",
+                a: { text: "앗, 이건 내 시나리오에 없던 변수인데 (순간 정지 및 당황) ⚠️", type: "J" },
+                b: { text: "오히려 좋아! 지금 당장 떠오르는 기발한 아이디어로 콤보 날림 ⚡", type: "P" }
+            }
+        ];
+
+        // Results Data
+        const results = {
+            ESTJ: {
+                title: "메인 댄서 겸 돌격 대장",
+                desc: "무대 중심을 잡는 칼군무의 정석! 전투에서도 룰을 중시하며 최전방에서 적의 뚝배기를 깨는 실질적 리더입니다. 답답한 거 못 참아서 가끔 자기가 다 때려잡는 불도저 재질.",
+                atk: 90, def: 85, mag: 30,
+                good: "ISFP", bad: "INFP"
+            },
+            ENTJ: {
+                title: "카리스마 리더 겸 전략가",
+                desc: "팀을 진두지휘하는 절대 권력. 마이크 하나로 무대와 전장을 모두 압도합니다. 큰 그림을 그리는 능력이 탁월해 보스 레이드 성공률 1위를 자랑하는 야망캐.",
+                atk: 85, def: 75, mag: 60,
+                good: "INFP", bad: "ISFP"
+            },
+            ESFJ: {
+                title: "서브 보컬 겸 힐러",
+                desc: "팬서비스 장인이자 크루의 엄마. 팀원들 멘탈 케어부터 HP 회복까지 전담합니다. 하지만 동료가 다치면 눈 돌아서 십자가(물리)로 악령을 패고 다니는 반전 매력의 소유자.",
+                atk: 40, def: 80, mag: 95,
+                good: "ISTP", bad: "INTP"
+            },
+            ENFJ: {
+                title: "메인 보컬 겸 성기사",
+                desc: "정의로운 마음씨와 빛나는 비주얼로 모두를 이끄는 주인공 재질. 무대 위에선 천상의 보컬, 전장에선 성스러운 빛으로 악을 심판합니다. 오글거리는 대사도 뻔뻔하게 잘 침.",
+                atk: 70, def: 85, mag: 80,
+                good: "INFP", bad: "ISTP"
+            },
+            ESTP: {
+                title: "메인 래퍼 겸 총잡이",
+                desc: "쇼미더머니 나갈 폼으로 랩을 뱉으며 쌍권총을 난사하는 미친 텐션. 스릴을 즐기며 전투를 게임처럼 여깁니다. 위기 상황에서도 \"오히려 좋아\"를 외치는 진정한 쾌남/쾌녀.",
+                atk: 95, def: 50, mag: 40,
+                good: "ISFJ", bad: "INFJ"
+            },
+            ENTP: {
+                title: "자유분방 프로듀서 겸 마법사",
+                desc: "틀에 박힌 걸 극혐하는 천재 기믹. 무대 연출이든 마법 주문이든 기발하고 파격적인 걸 좋아합니다. 가끔 아군도 놀라게 하는 광역기를 써서 팀장(J)에게 등짝을 맞습니다.",
+                atk: 80, def: 40, mag: 90,
+                good: "INFJ", bad: "ISFJ"
+            },
+            ESFP: {
+                title: "비주얼 센터 겸 암살자",
+                desc: "플래시 세례를 즐기는 본투비 연예인. 가장 화려하게 시선을 끌고, 적이 방심한 틈을 타 가장 치명적인 일격을 날립니다. 퇴마 후 인스타 스토리에 인증샷 올리는 건 필수.",
+                atk: 85, def: 45, mag: 55,
+                good: "INTJ", bad: "ISTJ"
+            },
+            ENFP: {
+                title: "분위기 메이커 겸 정령술사",
+                desc: "크루의 비타민! 정령들과 친구 먹고 무대 세트를 꽃밭으로 만들어버리는 능력자입니다. 전투 중에도 쉴 새 없이 떠들어서 악령이 기빨려서 도망가게 만드는 타입.",
+                atk: 60, def: 55, mag: 85,
+                good: "INFJ", bad: "ISTJ"
+            },
+            ISTJ: {
+                title: "리드 댄서 겸 방패병",
+                desc: "실수 용납 안 하는 인간 메트로놈. 악플러 고소장부터 적의 광역기 방어까지, 크루의 가장 든든한 방어막입니다. 퇴마 일지를 엑셀로 정리하는 지독한 원칙주의자.",
+                atk: 65, def: 95, mag: 40,
+                good: "ENFP", bad: "ENFJ"
+            },
+            INTJ: {
+                title: "천재 작곡가 겸 흑마법사",
+                desc: "작업실에 틀어박혀 비트와 저주를 동시에 깎는 은둔형 고수. 효율을 중시해서 손가락 하나 까딱하고 다수의 적을 소멸시키는 걸 선호합니다. 약간 중2병 베이스가 깔려있음.",
+                atk: 75, def: 60, mag: 95,
+                good: "ENFP", bad: "ESFJ"
+            },
+            ISFJ: {
+                title: "리드 보컬 겸 결계사",
+                desc: "묵묵히 제 몫을 다하는 숨은 실력자. 감미로운 음색으로 노래하며 절대 깨지지 않는 철벽의 결계를 칩니다. 튀는 건 싫어하지만 막상 센터 세워두면 제일 잘하는 스타일.",
+                atk: 45, def: 90, mag: 75,
+                good: "ESTP", bad: "ENTP"
+            },
+            INFJ: {
+                title: "신비주의 센터 겸 예언자",
+                desc: "오묘한 분위기로 코어 팬을 몰고 다니는 멤버. 남다른 통찰력으로 적의 약점과 패턴을 미리 읽어냅니다. 가끔 알 수 없는 소리를 해서 멤버들을 어리둥절하게 만듭니다.",
+                atk: 55, def: 70, mag: 90,
+                good: "ENFP", bad: "ESTP"
+            },
+            ISTP: {
+                title: "리드 래퍼 겸 저격수",
+                desc: "필요한 말만 하는 쿨워터 향 시크남/녀. 무대 구석에서 무심하게 랩을 뱉고, 전장에서도 먼 거리에서 원샷 원킬로 상황을 종료시킵니다. 기계 조립의 달인.",
+                atk: 95, def: 65, mag: 30,
+                good: "ESFJ", bad: "ENFJ"
+            },
+            INTP: {
+                title: "메인 프로듀서 겸 연금술사",
+                desc: "아이돌계의 매드 사이언티스트. 호기심이 발동하면 악령의 샘플을 채취해 괴상한 포션을 만들어냅니다. 팩트 폭격기라 가끔 악령보다 뼈 때리는 말을 더 잘함.",
+                atk: 70, def: 50, mag: 85,
+                good: "ENTJ", bad: "ESFJ"
+            },
+            ISFP: {
+                title: "메인 댄서 겸 환술사",
+                desc: "무대 위에선 누구보다 유연하고 예술적인 춤선을 보여줍니다. 전투 시에는 화려한 환영을 만들어 적을 교란시키는 데 탁월합니다. 침대와 물아일체 되는 것을 가장 사랑함.",
+                atk: 75, def: 60, mag: 70,
+                good: "ESTJ", bad: "ENTJ"
+            },
+            INFP: {
+                title: "서브 보컬 겸 소환사",
+                desc: "풍부한 감수성과 덕심을 가진 소환수 덕후. 본인이 직접 싸우기보단 강력한(하지만 귀엽게 생긴) 마수를 소환해 싸우게 합니다. 전투 끝나면 인류애 상실해서 충전 시간 필요함.",
+                atk: 60, def: 40, mag: 90,
+                good: "ENFJ", bad: "ESTJ"
+            }
+        };
+
+        // State
+        let currentQuestion = 0;
+        let scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+
+        // Functions
+        function startGame() {
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('question-screen').classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('q-num').innerText = `Q. ${currentQuestion + 1} / ${questions.length}`;
+            
+            // Progress bar
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Text
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('ans-a').innerText = q.a.text;
+            document.getElementById('ans-b').innerText = q.b.text;
+        }
+
+        function selectAnswer(choice) {
+            const q = questions[currentQuestion];
+            const type = choice === 'A' ? q.a.type : q.b.type;
+            scores[type]++;
+
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                // Update progress visually first, then show next
+                const progress = ((currentQuestion) / questions.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                
+                // Add a tiny delay for feeling of interaction
+                setTimeout(() => {
+                    showQuestion();
+                }, 150);
+            } else {
+                showLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('question-screen').classList.remove('active');
+            document.getElementById('loading-screen').classList.add('active');
+
+            setTimeout(() => {
+                calculateResult();
+            }, 2500); // Fake loading time
+        }
+
+        function calculateResult() {
+            const mbti = 
+                (scores.E > scores.I ? 'E' : 'I') +
+                (scores.S > scores.N ? 'S' : 'N') +
+                (scores.T > scores.F ? 'T' : 'F') +
+                (scores.J > scores.P ? 'J' : 'P');
+
+            const res = results[mbti];
+
+            document.getElementById('result-mbti').innerText = mbti;
+            document.getElementById('result-title').innerText = res.title;
+            document.getElementById('result-desc').innerText = res.desc;
+            
+            document.getElementById('stat-atk').innerText = res.atk;
+            document.getElementById('stat-def').innerText = res.def;
+            document.getElementById('stat-mag').innerText = res.mag;
+
+            document.getElementById('match-good').innerText = res.good + " " + results[res.good].title.split(' ')[0];
+            document.getElementById('match-bad').innerText = res.bad + " " + results[res.bad].title.split(' ')[0];
+
+            // Generating a cute pixel/abstract avatar based on MBTI letters (Placeholder)
+            const seed = mbti.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const hue = (seed * 15) % 360;
+            document.getElementById('result-img').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${mbti}&backgroundColor=${hue.toString(16)}0000`;
+
+            document.getElementById('loading-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+        }
+
+        function copyLink() {
+            // Fake clipboard copy for presentation
+            const dummy = document.createElement('input');
+            const text = window.location.href;
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            const toast = document.getElementById('toast');
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
